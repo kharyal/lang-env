@@ -35,13 +35,13 @@ class roomEnv():
             self.walls[room] = np.array([self.walls[room]])
         self.gates = np.array([[[10,4],[10,8]], [[10,-4],[10,-8]], [[-10,4],[-10,8]], [[-10,-4],[-10,-8]],])
 
-        self.wall_keys = ["east", "south", "west", "north"]
-        self.action_keys = {
-            0: np.array([0,1]),
-            1: np.array([0,-1]),
-            2: np.array([1,0]),
-            3: np.array([-1,0]),
-        }
+        self.wall_keys = ["west", "south", "east", "north"]
+        self.action_keys = [
+            np.array([0,1]),
+            np.array([0,-1]),
+            np.array([1,0]),
+            np.array([-1,0]),
+        ]
         
         self.init_position = np.array([.0,.0])
         self.init_objects = np.array([
@@ -49,7 +49,7 @@ class roomEnv():
             ['green', [14,-6]],
             ['blue', [-14,-6]],
             ['yellow', [-14,6]],
-        ])
+        ], dtype=object)
 
         self.fig = None
         self.current_room = "main room"
@@ -57,6 +57,7 @@ class roomEnv():
         self.objects = deepcopy(self.init_objects)
         self.event = ""
         self.picked_objects = np.array([0,0,0,0], dtype=bool)
+        self.steps = 0
 
     def reset(self):
         self.current_room = "main room"
@@ -64,11 +65,13 @@ class roomEnv():
         self.objects = deepcopy(self.init_objects)
         self.event = ""
         self.picked_objects = np.array([0,0,0,0], dtype=bool)
+        self.steps = 0
 
         obs = self.get_obs()
         return obs, {"event": self.event}
 
     def step(self, action):
+        self.steps += 1
         self.event = ""
         if action<4: # movement
             a = self.action_keys[action]
@@ -145,18 +148,19 @@ class roomEnv():
         if self.fig is None:
             self.fig,self.ax = plt.subplots()
 
-        self.ax.cla()
+        if self.steps%3 == 0:
+            self.ax.cla()
 
-        # render walls
-        for room in self.rooms.keys():
-            self.ax.plot(self.walls[room][0][:, 0, 0], self.walls[room][0][:, 0, 1], c = 'b')
-            self.ax.plot(self.walls[room][0][-1,:,0], self.walls[room][0][-1,:,1], c='b')
-        for gate in self.gates:
-            self.ax.plot(gate[:,0], gate[:,1], c='white')
-        self.ax.scatter(*self.position, c='r', s=60)
-        for object in self.objects:
-            self.ax.scatter(*object[1], c=object[0], s=20)
-        plt.pause(0.0001)
+            # render walls
+            for room in self.rooms.keys():
+                self.ax.plot(self.walls[room][0][:, 0, 0], self.walls[room][0][:, 0, 1], c = 'b')
+                self.ax.plot(self.walls[room][0][-1,:,0], self.walls[room][0][-1,:,1], c='b')
+            for gate in self.gates:
+                self.ax.plot(gate[:,0], gate[:,1], c='white')
+            self.ax.scatter(*self.position, c='r', s=60)
+            for object in self.objects:
+                self.ax.scatter(*object[1], c=object[0], s=20)
+            plt.pause(0.0001)
 
 
 if __name__ == "__main__":
